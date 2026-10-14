@@ -1,0 +1,43 @@
+package com.manbear.ai;
+
+import com.manbear.entity.ManbearEntity;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.goal.Goal;
+
+import java.util.EnumSet;
+
+/** The lure wolf: once it has been marked "manbear_run" it sprints straight to the Manbear. */
+public class LureWolfGoal extends Goal {
+    private final PathfinderMob mob;
+    private int repath;
+
+    public LureWolfGoal(PathfinderMob mob) {
+        this.mob = mob;
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE));
+    }
+
+    @Override
+    public boolean canUse() {
+        return mob.getTags().contains("manbear_run") && ManbearEntity.current() != null;
+    }
+
+    @Override
+    public boolean canContinueToUse() {
+        return canUse();
+    }
+
+    @Override
+    public void tick() {
+        ManbearEntity b = ManbearEntity.current();
+        if (b == null) return;
+        mob.getLookControl().setLookAt(b, 30.0F, 30.0F);
+        if (--repath > 0 && !mob.getNavigation().isDone()) return;
+        repath = 6;
+        mob.getNavigation().moveTo(b.getX(), b.getY(), b.getZ(), 1.9D);
+    }
+
+    @Override
+    public void stop() {
+        mob.getNavigation().stop();
+    }
+}
